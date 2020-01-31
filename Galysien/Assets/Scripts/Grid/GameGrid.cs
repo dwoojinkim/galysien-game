@@ -6,12 +6,14 @@ public class GameGrid : MonoBehaviour
 {
     [SerializeField] Vector2Int boardSize = new Vector2Int(10, 10);
     [SerializeField] Texture2D gridTexture = default;
-    private float tileSize = 1f;
+    [SerializeField] private float tileSize = 2f;
     public float TileSize { get { return tileSize; } }
     public Vector2Int BoardSize { get { return boardSize;} }
 
     void Start()
     {
+        transform.localScale = new Vector3 (boardSize.x * tileSize, boardSize.y * tileSize, 1);
+
         Material m = this.GetComponent<MeshRenderer>().material;
         m.mainTexture = gridTexture;
         m.SetTextureScale("_MainTex", boardSize);        
@@ -19,23 +21,29 @@ public class GameGrid : MonoBehaviour
 
     public Vector3 GetNearestPointOnGrid(Vector3 position)
     {
+        Vector2 pointOffset = new Vector2(0f, 0f);
+
+        //If Even, set offset to be half of a tile, else no offset needed
+        if (boardSize.x % 2 == 0)
+            pointOffset.x = 0.5f;
+        if (boardSize.y % 2 == 0)
+            pointOffset.y = 0.5f;
+
         position -= transform.position;
 
-        int xCount = Mathf.RoundToInt(position.x / tileSize);
-        int yCount = Mathf.RoundToInt(position.y / tileSize);
-        int zCount = Mathf.RoundToInt(position.z / tileSize);
-
-        //float xCount = (position.x / tileSize);
-        //float yCount = (position.y / tileSize);
-        //float zCount = (position.z / tileSize);
+        float xCount = Mathf.RoundToInt((position.x / tileSize) - pointOffset.x);
+        float yCount = Mathf.RoundToInt((position.y / tileSize));
+        float zCount = Mathf.RoundToInt((position.z / tileSize) - pointOffset.y);
 
         Vector3 result = new Vector3(
-            (float)xCount * tileSize,
-            (float)yCount * tileSize,
-            (float)zCount * tileSize);
+            (xCount + pointOffset.x) * tileSize,
+            yCount * tileSize,
+            (zCount + pointOffset.y) * tileSize);
         
         result += transform.position;
 
+        //Debug.Log("Initial Position: (" + position.x + ", " + position.y + ", " + position.z + ")");
+        //Debug.Log("Result Position: (" + result.x + ", " + result.y + ", " + result.z + ")");
         return result;
     }
 
@@ -43,9 +51,9 @@ public class GameGrid : MonoBehaviour
     {
         Vector2 boardOffset = new Vector2((boardSize.x - 1) * 0.5f, (boardSize.y - 1) * 0.5f);
 
-        if (position.x >= transform.position.x - boardOffset.x && position.x <= transform.position.x + boardOffset.x)
+        if (position.x >= transform.position.x - (boardOffset.x * tileSize) && position.x <= transform.position.x + (boardOffset.x * tileSize))
         {
-            if (position.z >= transform.position.z - boardOffset.y && position.z <= transform.position.z + boardOffset.y)
+            if (position.z >= transform.position.z - (boardOffset.y * tileSize) && position.z <= transform.position.z + (boardOffset.y * tileSize))
                 return true;
             else
                 return false;
@@ -58,7 +66,7 @@ public class GameGrid : MonoBehaviour
             return false;
         }
     }
-
+/*
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
@@ -70,11 +78,13 @@ public class GameGrid : MonoBehaviour
         if (boardSize.y % 2 != 0)
             _boardSizeY -= 1;
 
-        Vector2 boardOffset = new Vector2((_boardSizeX) * 0.5f, (_boardSizeY) * 0.5f);
+        Vector2 boardOffset = new Vector2(_boardSizeX * 0.5f * tileSize, _boardSizeY * 0.5f * tileSize);
+        //Debug.Log("X offset: " + boardOffset.x);
+        //ebug.Log("Y offset: " + boardOffset.y);
 
-        for (float x = 0; x < boardSize.x; x += tileSize)
+        for (float x = 0; x < boardSize.x * tileSize; x += tileSize)
         {
-            for (float z = 0; z < boardSize.y; z += tileSize)
+            for (float z = 0; z < boardSize.y * tileSize; z += tileSize)
             {
                 var point = GetNearestPointOnGrid(new Vector3(x - boardOffset.x, 0f, z - boardOffset.y));
                 if (boardSize.x % 2 == 0)
@@ -88,5 +98,11 @@ public class GameGrid : MonoBehaviour
                 //Debug.Log("Y: " + (z - boardOffset.y + (tileSize / 2.0f)));
             }
         }
+    }*/
+
+    void OnValidate()
+    {
+        if (tileSize < 1f)
+            tileSize = 1f;
     }
 }

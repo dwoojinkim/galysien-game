@@ -30,12 +30,12 @@ public class CubePlacer : MonoBehaviour
     private void PlaceCubeNear(Vector3 nearPoint)
     {
         var finalPosition = grid.GetNearestPointOnGrid(nearPoint);
-        if (grid.BoardSize.x % 2 == 0)
-            finalPosition.x += grid.TileSize;
-        if (grid.BoardSize.y % 2 == 0)
-            finalPosition.z += grid.TileSize;
 
         if (grid.IsOnGrid(finalPosition))
-            GameObject.CreatePrimitive(PrimitiveType.Cube).transform.position = finalPosition;
+        {
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.position = finalPosition;
+            cube.transform.localScale = new Vector3(grid.TileSize, cube.transform.localScale.y, grid.TileSize);
+        }
     }
 }
