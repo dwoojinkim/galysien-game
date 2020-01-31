@@ -8,6 +8,7 @@ public class GameGrid : MonoBehaviour
     [SerializeField] Texture2D gridTexture = default;
     private float tileSize = 1f;
     public float TileSize { get { return tileSize; } }
+    public Vector2Int BoardSize { get { return boardSize;} }
 
     void Start()
     {
@@ -61,14 +62,30 @@ public class GameGrid : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
-        Vector2 boardOffset = new Vector2((boardSize.x - 1) * 0.5f, (boardSize.y - 1) * 0.5f);
+        int _boardSizeX = boardSize.x;
+        int _boardSizeY = boardSize.y;
+
+        if (boardSize.x % 2 != 0)
+            _boardSizeX -= 1;
+        if (boardSize.y % 2 != 0)
+            _boardSizeY -= 1;
+
+        Vector2 boardOffset = new Vector2((_boardSizeX) * 0.5f, (_boardSizeY) * 0.5f);
 
         for (float x = 0; x < boardSize.x; x += tileSize)
         {
             for (float z = 0; z < boardSize.y; z += tileSize)
             {
                 var point = GetNearestPointOnGrid(new Vector3(x - boardOffset.x, 0f, z - boardOffset.y));
+                if (boardSize.x % 2 == 0)
+                    point.x += tileSize / 2.0f;
+                if (boardSize.y % 2 == 0)
+                    point.y += tileSize / 2.0f;
+
                 Gizmos.DrawSphere(point, 0.1f);
+
+                //Debug.Log("X: " + (x - boardOffset.x + (tileSize / 2.0f)));
+                //Debug.Log("Y: " + (z - boardOffset.y + (tileSize / 2.0f)));
             }
         }
     }

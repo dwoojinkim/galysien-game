@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0.44300318, g: 0.49219626, b: 0.57192606, a: 1}
+  m_IndirectSpecularColor: {r: 0.4430028, g: 0.49219513, b: 0.57192504, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -574,7 +574,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8043b3c0557d8c43bd0333884c66347, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boardSize: {x: 5, y: 5}
+  boardSize: {x: 6, y: 6}
   gridTexture: {fileID: 2800000, guid: 7f6f17cbc65ed394882503f3ed830d2e, type: 3}
 --- !u!23 &1010269910
 MeshRenderer:
