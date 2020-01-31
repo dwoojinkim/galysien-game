@@ -10,18 +10,20 @@ public class GameGrid : MonoBehaviour
     public float TileSize { get { return tileSize; } }
     public Vector2Int BoardSize { get { return boardSize;} }
 
+    private bool[,] gridTile;
+    Vector2 pointOffset = new Vector2(0f, 0f);  //For GetNearestPointOnGrid method
+    Vector2 boardOffset = new Vector2(0f, 0f);  //For IsOnGrid method
+    Vector2Int gridCoord = new Vector2Int(0, 0);
+
     void Start()
     {
         transform.localScale = new Vector3 (boardSize.x * tileSize, boardSize.y * tileSize, 1);
 
         Material m = this.GetComponent<MeshRenderer>().material;
         m.mainTexture = gridTexture;
-        m.SetTextureScale("_MainTex", boardSize);        
-    }
+        m.SetTextureScale("_MainTex", boardSize);
 
-    public Vector3 GetNearestPointOnGrid(Vector3 position)
-    {
-        Vector2 pointOffset = new Vector2(0f, 0f);
+        gridTile = new bool[boardSize.x, boardSize.y];
 
         //If Even, set offset to be half of a tile, else no offset needed
         if (boardSize.x % 2 == 0)
@@ -29,6 +31,12 @@ public class GameGrid : MonoBehaviour
         if (boardSize.y % 2 == 0)
             pointOffset.y = 0.5f;
 
+        boardOffset.x = (boardSize.x - 1) * 0.5f;
+        boardOffset.y = (boardSize.y - 1) * 0.5f;
+    }
+
+    public Vector3 GetNearestPointOnGrid(Vector3 position)
+    {
         position -= transform.position;
 
         float xCount = Mathf.RoundToInt((position.x / tileSize) - pointOffset.x);
@@ -49,8 +57,7 @@ public class GameGrid : MonoBehaviour
 
     public bool IsOnGrid(Vector3 position)
     {
-        Vector2 boardOffset = new Vector2((boardSize.x - 1) * 0.5f, (boardSize.y - 1) * 0.5f);
-
+        //Check if position is within the bounds of the grid
         if (position.x >= transform.position.x - (boardOffset.x * tileSize) && position.x <= transform.position.x + (boardOffset.x * tileSize))
         {
             if (position.z >= transform.position.z - (boardOffset.y * tileSize) && position.z <= transform.position.z + (boardOffset.y * tileSize))
@@ -59,12 +66,31 @@ public class GameGrid : MonoBehaviour
                 return false;
         }
         else
-        {
-            //Debug.Log("Position x: " + position.x);
-            //Debug.Log("Transform x: " + transform.position.x);
-            //Debug.Log("boardOffset x: " + boardOffset.x);
             return false;
-        }
+    }
+
+    public bool PlaceableTile(Vector3 position)
+    {
+        //Check if something is on the space preventing valid position (i.e. placed object, unplaceable area due to map, etc.)
+        //TODO: Only checks for previously placed object. Check for other obstacles later
+        //Debug.Log("PlaceableTile Position: (" + (int)position.x + ", " + (int)position.z + ")");
+        if (!gridTile[PosToCoord(position).x, PosToCoord(position).y])
+            return true;
+        else
+            return false;
+    }
+
+    //Translates from cartesian world coordinates (-inf to +inf, -inf to +inf), to grid coordinates (0 to inf, 0 to inf)
+    public Vector2Int PosToCoord(Vector3 position)
+    {
+        gridCoord.x = (int)((position.x / tileSize) + boardOffset.x);
+        gridCoord.y = (int)(boardOffset.y - (position.z / tileSize));
+        return gridCoord;
+    }
+
+    public void PlaceTile(Vector2Int gridPosition)
+    {
+        gridTile[gridPosition.x, gridPosition.y] = true;
     }
 /*
     private void OnDrawGizmos()
