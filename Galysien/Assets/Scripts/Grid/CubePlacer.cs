@@ -16,6 +16,7 @@ public class CubePlacer : MonoBehaviour
         grid = FindObjectOfType<GameGrid>();
         hoverCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         hoverCube.transform.localScale = new Vector3 (grid.TileSize, hoverCube.transform.localScale.y, grid.TileSize);
+
         //Entire chunk necessary to properly set the Rendering Mode of the material to Transparent.
         hoverCube.GetComponent<Renderer>().material.SetFloat("_Mode", 2);   //2 = Fade mode where object can be completely invisible
         hoverCube.GetComponent<Renderer>().material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
@@ -26,6 +27,9 @@ public class CubePlacer : MonoBehaviour
         hoverCube.GetComponent<Renderer>().material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         hoverCube.GetComponent<Renderer>().material.renderQueue = 3000;
         hoverCube.GetComponent<Renderer>().material.color = new Color(0.4f, 0.4f, 1.0f, 0.0f);
+        //End Chunk
+
+
     }
 
     // Update is called once per frame
@@ -36,14 +40,13 @@ public class CubePlacer : MonoBehaviour
             RaycastHit hitInfo;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-            if (Physics.Raycast(ray, out hitInfo))
-            {
+            if (Physics.Raycast(ray, out hitInfo) && hitInfo.collider.gameObject.GetComponent<GameGrid>() != null)
                 PlaceCubeNear(hitInfo.point);
-            }
         }
 
+
         mouseOverRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(mouseOverRay, out mouseOverHit))
+        if (Physics.Raycast(mouseOverRay, out mouseOverHit) && mouseOverHit.collider.gameObject.GetComponent<GameGrid>() != null)
         {
             hoverPoint = grid.GetNearestPointOnGrid(mouseOverHit.point);
 
@@ -51,11 +54,9 @@ public class CubePlacer : MonoBehaviour
             {
                 hoverCube.GetComponent<Renderer>().material.SetFloat("_Mode", 3);   //3 = transparent mode
 
-                if (!grid.PlaceableTile(hoverPoint))
-                    hoverCube.GetComponent<Renderer>().material.color = new Color(1f, 0.4f, 0.4f, 0.5f);
-                else
-                    //TODO: More efficient way to color instead of constantly making a new color when hovered over grid.
-                    hoverCube.GetComponent<Renderer>().material.color = new Color(0.4f, 0.4f, 1.0f, 0.5f);
+                //TODO: More efficient way to color instead of constantly making a new color when hovered over grid.
+                //Use of a Ternary Operator
+                hoverCube.GetComponent<Renderer>().material.color = !grid.PlaceableTile(hoverPoint) ? new Color(1f, 0.4f, 0.4f, 0.5f) : new Color(0.4f, 0.4f, 1.0f, 0.5f);
 
                 hoverCube.transform.position = hoverPoint;
             }
