@@ -16,6 +16,7 @@ public class CubePlacer : MonoBehaviour
         grid = FindObjectOfType<GameGrid>();
         hoverCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         hoverCube.transform.localScale = new Vector3 (grid.TileSize, hoverCube.transform.localScale.y, grid.TileSize);
+        hoverCube.layer = 2; //Ignore Raycast Layer
 
         //Entire chunk necessary to properly set the Rendering Mode of the material to Transparent.
         hoverCube.GetComponent<Renderer>().material.SetFloat("_Mode", 2);   //2 = Fade mode where object can be completely invisible
@@ -46,12 +47,14 @@ public class CubePlacer : MonoBehaviour
 
 
         mouseOverRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(mouseOverRay, out mouseOverHit) && mouseOverHit.collider.gameObject.GetComponent<GameGrid>() != null)
+        if (Physics.Raycast(mouseOverRay, out mouseOverHit))
         {
             hoverPoint = grid.GetNearestPointOnGrid(mouseOverHit.point);
 
-            if (grid.IsOnGrid(hoverPoint))
+            if (grid.IsOnGrid(hoverPoint) && mouseOverHit.collider.gameObject.GetComponent<GameGrid>() != null)
             {
+                if(mouseOverHit.collider.gameObject.GetComponent<GameGrid>() != null) // Checking if collider is the Grid
+
                 hoverCube.GetComponent<Renderer>().material.SetFloat("_Mode", 3);   //3 = transparent mode
 
                 //TODO: More efficient way to color instead of constantly making a new color when hovered over grid.
