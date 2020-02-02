@@ -8,5 +8,5 @@ public class Card : MonoBehaviour
     public Sigil CurrentSigil { get; set; } = Sigil.None;
     public bool IsSelected { get; set; } = false;
 
-    public float PosOffset { get; set; } = 1.75f; //When in the player's hand
+    public float PosOffset { get; set; } = 1.5f; //When in the player's hand
 }

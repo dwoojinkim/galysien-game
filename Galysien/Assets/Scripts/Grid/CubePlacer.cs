@@ -15,6 +15,7 @@ public class CubePlacer : MonoBehaviour
     void Awake()
     {
         grid = FindObjectOfType<GameGrid>();
+        /*
         hoverCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         hoverCube.transform.localScale = new Vector3 (grid.TileSize, hoverCube.transform.localScale.y, grid.TileSize);
         hoverCube.layer = 2; //Ignore Raycast Layer
@@ -29,7 +30,7 @@ public class CubePlacer : MonoBehaviour
         hoverCube.GetComponent<Renderer>().material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         hoverCube.GetComponent<Renderer>().material.renderQueue = 3000;
         hoverCube.GetComponent<Renderer>().material.color = new Color(0.4f, 0.4f, 1.0f, 0.0f);
-        //End Chunk
+        //End Chunk*/
 
 
     }
@@ -46,7 +47,7 @@ public class CubePlacer : MonoBehaviour
                 PlaceCubeNear(hitInfo.point);
         }
 
-
+/*
         mouseOverRay = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(mouseOverRay, out mouseOverHit))
         {
@@ -74,7 +75,7 @@ public class CubePlacer : MonoBehaviour
 
                 hoverCube.transform.position = hoverPoint;
             }
-        }
+        }*/
         
     }
 
