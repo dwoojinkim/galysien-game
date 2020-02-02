@@ -7,6 +7,7 @@ public class CubePlacer : MonoBehaviour
     private GameGrid grid;
     private Ray mouseOverRay;
     private RaycastHit mouseOverHit;
+    private GameObject mouseOverHitObject;
     private GameObject hoverCube;
     private Vector3 hoverPoint;
 
@@ -50,10 +51,11 @@ public class CubePlacer : MonoBehaviour
         if (Physics.Raycast(mouseOverRay, out mouseOverHit))
         {
             hoverPoint = grid.GetNearestPointOnGrid(mouseOverHit.point);
+            mouseOverHitObject = mouseOverHit.collider.gameObject;
 
-            if (grid.IsOnGrid(hoverPoint) && mouseOverHit.collider.gameObject.GetComponent<GameGrid>() != null)
+            if (grid.IsOnGrid(hoverPoint) && (mouseOverHitObject.GetComponent<GameGrid>() != null || mouseOverHitObject.GetComponent<Tile>() != null))
             {
-                if(mouseOverHit.collider.gameObject.GetComponent<GameGrid>() != null) // Checking if collider is the Grid
+                if(mouseOverHitObject.GetComponent<GameGrid>() != null) // Checking if collider is the Grid
 
                 hoverCube.GetComponent<Renderer>().material.SetFloat("_Mode", 3);   //3 = transparent mode
 
@@ -87,6 +89,7 @@ public class CubePlacer : MonoBehaviour
             var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = finalPosition;
             cube.transform.localScale = new Vector3(grid.TileSize * 0.9f, cube.transform.localScale.y * 0.9f, grid.TileSize * 0.9f);
+            cube.AddComponent<Tile>();
         }
     }
 }
