@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Card : MonoBehaviour
+public class Tile : MonoBehaviour
 {
     public Element CurrentElement { get; set; } = Element.None;
     public Sigil CurrentSigil { get; set; } = Sigil.None;
-    public bool IsSelected { get; set; } = false;
-
-    public float PosOffset { get; set; } = 1.75f; //When in the player's hand
+    public TileType CurrentTileType { get; set; } = TileType.None;
 }

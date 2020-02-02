@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum TileType { None, Wall, Trap };
+public enum Element { None, Earth, Fire, Water, Dark, Light };
+public enum Sigil { None, Up, Down, Left, Right };             //Temporary Sigils
+
 public class GameManager : MonoBehaviour
 {
     public GameObject card;
@@ -11,7 +15,7 @@ public class GameManager : MonoBehaviour
     private GameObject[] cardPool;
     private int currentNumHand;
 
-    private bool moveCards = false;
+    private bool cardSelected = false;
 
     void Awake()
     {
@@ -34,17 +38,17 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown("space"))
+        if (Input.GetMouseButtonDown(0))
         {
-            moveCards = !moveCards;
+            CheckCardSelection();
         }
 
-        if (moveCards)
+        if (cardSelected)
         {
             //Using flawed logic ATM because it would break when for example activated cards are non-sequential
             for (int i = 0; i < cardPoolSize; i++)
             {
-                if (cardPool[i].activeSelf)
+                if (cardPool[i].activeSelf && !cardPool[i].GetComponent<Card>().IsSelected)
                     cardPool[i].transform.localPosition = new Vector3(cardPool[i].transform.localPosition.x, -6.0f, cardPool[i].transform.localPosition.z);
             }
         }
@@ -77,6 +81,33 @@ public class GameManager : MonoBehaviour
             card.transform.parent = Camera.main.transform;
             card.transform.localPosition = new Vector3 (cardPosX, -3.5f, 9f);
             card.SetActive(true);
+        }
+    }
+
+    private void CheckCardSelection()
+    {
+        if (!cardSelected)
+        {
+            RaycastHit hitInfo;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out hitInfo) && hitInfo.collider.gameObject.GetComponent<Card>() != null)
+            {
+                hitInfo.collider.gameObject.GetComponent<Card>().IsSelected = true;
+                cardSelected = true;
+            }
+        }
+        else
+        {
+            RaycastHit hitInfo;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out hitInfo) && hitInfo.collider.gameObject.GetComponent<Card>() != null)
+            {
+                if (hitInfo.collider.gameObject.GetComponent<Card>().IsSelected)
+                hitInfo.collider.gameObject.GetComponent<Card>().IsSelected = false;
+                cardSelected = false;
+            }
         }
     }
 }
