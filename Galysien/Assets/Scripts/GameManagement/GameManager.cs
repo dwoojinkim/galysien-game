@@ -10,21 +10,34 @@ public class GameManager : MonoBehaviour
 {
     public GameObject card;
 
+    private Camera mainCamera;
     private GameGrid grid;
     private int initialCardDrawAmount = 4;
     private int cardPoolSize = 10;
     private GameObject[] cardPool;
+    private List<GameObject> currentHand;
     private int currentNumHand;
     private Ray mouseOverRay;
     private RaycastHit mouseOverHit;
     private GameObject hoverCube;
     private Vector3 hoverPoint;
     private GameObject mouseOverHitObject;
+    private GameObject selectedCard;
+
+    //Test variables for moving card around camera
+    private float distance;
+    private Vector3 toObjectVector;
+    private Vector3 linearDistanceVector;
+    private Vector3 mousePosition;
+    private Vector3 initialCameraPosition;
+    private Vector3 initialCameraForward;
 
     private bool cardSelected = false;
 
     void Awake()
     {
+        mainCamera = Camera.main;
+
         grid = FindObjectOfType<GameGrid>();
         hoverCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         hoverCube.transform.localScale = new Vector3 (grid.TileSize, hoverCube.transform.localScale.y, grid.TileSize);
@@ -49,6 +62,8 @@ public class GameManager : MonoBehaviour
             obj.SetActive(false);
             cardPool[i] = obj;
         }
+
+        currentHand = new List<GameObject>();
     }
     
     // Start is called before the first frame update
@@ -60,10 +75,14 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HoverGrid();
-
         if (Input.GetMouseButtonDown(0))
         {
+            RaycastHit hitInfo;
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+
+            if (cardSelected && Physics.Raycast(ray, out hitInfo) && hitInfo.collider.gameObject.GetComponent<GameGrid>() != null)
+                PlaceCubeNear(hitInfo.point);
+
             CheckCardSelection();
         }
 
@@ -72,9 +91,16 @@ public class GameManager : MonoBehaviour
             //Using flawed logic ATM because it would break when for example activated cards are non-sequential
             for (int i = 0; i < cardPoolSize; i++)
             {
-                if (cardPool[i].activeSelf && !cardPool[i].GetComponent<Card>().IsSelected)
+                //if (cardPool[i].activeSelf && !cardPool[i].GetComponent<Card>().IsSelected)
+                //    cardPool[i].transform.localPosition = new Vector3(cardPool[i].transform.localPosition.x, -6.0f, cardPool[i].transform.localPosition.z);
+
+                if (cardPool[i].activeSelf && cardPool[i].GetComponent<Card>().IsSelected)
+                    MoveSelectedCard(cardPool[i]);
+                else
                     cardPool[i].transform.localPosition = new Vector3(cardPool[i].transform.localPosition.x, -6.0f, cardPool[i].transform.localPosition.z);
             }
+
+            HoverGrid();
         }
         else
         {
@@ -107,44 +133,70 @@ public class GameManager : MonoBehaviour
                 cardPosX += (card.transform.localScale.x + card.GetComponent<Card>().PosOffset) / 2;
                 if (i == halfCards - 1)
                     i++;
+                
+                currentHand.Add(card);
             }
 
-            card.transform.parent = Camera.main.transform;
+            card.transform.parent = mainCamera.transform;
             card.transform.localPosition = new Vector3 (cardPosX, -3.5f, 9f);
             card.SetActive(true);
         }
     }
 
+    //Change method so there is only one raycast done, instead of the two separate ones for no reason
     private void CheckCardSelection()
     {
         if (!cardSelected)
         {
             RaycastHit hitInfo;
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
             if (Physics.Raycast(ray, out hitInfo) && hitInfo.collider.gameObject.GetComponent<Card>() != null)
             {
-                hitInfo.collider.gameObject.GetComponent<Card>().IsSelected = true;
+                selectedCard = hitInfo.collider.gameObject;
+
+                selectedCard.GetComponent<Card>().IsSelected = true;
+                selectedCard.GetComponent<Renderer>().material.color = new Color(selectedCard.GetComponent<Renderer>().material.color.r, 
+                                                                                 selectedCard.GetComponent<Renderer>().material.color.g,
+                                                                                 selectedCard.GetComponent<Renderer>().material.color.b,
+                                                                                 0.5f);
+                selectedCard.layer = 2;         //Ignore Raycast layer
+
+                //Set so that if the camera moves around a bit, the card won't move with it
+                initialCameraPosition = mainCamera.transform.position;
+                initialCameraForward = mainCamera.transform.forward;
+
                 cardSelected = true;
             }
         }
         else
         {
             RaycastHit hitInfo;
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
             if (Physics.Raycast(ray, out hitInfo) && hitInfo.collider.gameObject.GetComponent<Card>() != null)
             {
-                if (hitInfo.collider.gameObject.GetComponent<Card>().IsSelected)
-                hitInfo.collider.gameObject.GetComponent<Card>().IsSelected = false;
-                cardSelected = false;
+                selectedCard = hitInfo.collider.gameObject;
+
+                if (selectedCard.GetComponent<Card>().IsSelected)
+                {
+                    selectedCard.GetComponent<Card>().IsSelected = false;
+                    selectedCard.GetComponent<Card>().IsSelected = true;
+                    selectedCard.GetComponent<Renderer>().material.color = new Color(selectedCard.GetComponent<Renderer>().material.color.r, 
+                                                                                     selectedCard.GetComponent<Renderer>().material.color.g,
+                                                                                     selectedCard.GetComponent<Renderer>().material.color.b,
+                                                                                     1.0f);
+                    selectedCard.layer = 0;     //Back to Default layer
+                    cardSelected = false;
+                }
+
             }
         }
     }
 
     private void HoverGrid()
     {
-        mouseOverRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        mouseOverRay = mainCamera.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(mouseOverRay, out mouseOverHit))
         {
             hoverPoint = grid.GetNearestPointOnGrid(mouseOverHit.point);
@@ -171,6 +223,35 @@ public class GameManager : MonoBehaviour
 
                 hoverCube.transform.position = hoverPoint;
             }
+        }
+    }
+
+    private void MoveSelectedCard(GameObject card)
+    {
+        toObjectVector = card.transform.position - initialCameraPosition;
+        linearDistanceVector = Vector3.Project(toObjectVector, initialCameraForward);
+        distance = linearDistanceVector.magnitude;
+
+        mousePosition = Input.mousePosition;
+        mousePosition.z = distance;
+
+        card.transform.position = mainCamera.ScreenToWorldPoint(mousePosition);
+    }
+
+    //Test method for placing things on grid
+    private void PlaceCubeNear(Vector3 nearPoint)
+    {
+        var finalPosition = grid.GetNearestPointOnGrid(nearPoint);
+
+        if (grid.IsOnGrid(finalPosition) && grid.PlaceableTile(finalPosition))
+        {
+            Vector2Int test = grid.PosToCoord(finalPosition);
+            grid.PlaceTile(test);
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.position = finalPosition;
+            cube.transform.localScale = new Vector3(grid.TileSize * 0.9f, cube.transform.localScale.y * 0.9f, grid.TileSize * 0.9f);
+            cube.AddComponent<Tile>();
+            cardSelected = false;
         }
     }
 }
