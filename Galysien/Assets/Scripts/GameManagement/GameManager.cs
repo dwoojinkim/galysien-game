@@ -251,6 +251,12 @@ public class GameManager : MonoBehaviour
             cube.transform.position = finalPosition;
             cube.transform.localScale = new Vector3(grid.TileSize * 0.9f, cube.transform.localScale.y * 0.9f, grid.TileSize * 0.9f);
             cube.AddComponent<Tile>();
+            selectedCard.GetComponent<Renderer>().material.color = new Color(selectedCard.GetComponent<Renderer>().material.color.r, 
+                                                                             selectedCard.GetComponent<Renderer>().material.color.g,
+                                                                             selectedCard.GetComponent<Renderer>().material.color.b,
+                                                                             1.0f);
+            //selectedCard.layer = 0;     //Back to Default layer
+            selectedCard.GetComponent<Card>().IsSelected = false;
             cardSelected = false;
         }
     }
