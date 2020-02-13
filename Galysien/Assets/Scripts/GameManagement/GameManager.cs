@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour
         hoverCube.transform.localScale = new Vector3 (grid.TileSize, hoverCube.transform.localScale.y, grid.TileSize);
         hoverCube.layer = 2; //Ignore Raycast Layer
 
+        //TODO: Make the hoberCube a prefab so I can delete this nonsense.
         //Entire chunk necessary to properly set the Rendering Mode of the material to Transparent.
         hoverCube.GetComponent<Renderer>().material.SetFloat("_Mode", 2);   //2 = Fade mode where object can be completely invisible
         hoverCube.GetComponent<Renderer>().material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
@@ -80,10 +81,13 @@ public class GameManager : MonoBehaviour
             RaycastHit hitInfo;
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
+            //If a card has been selected, place a cube at a valid selected tile
             if (cardSelected && Physics.Raycast(ray, out hitInfo) && hitInfo.collider.gameObject.GetComponent<GameGrid>() != null)
                 PlaceCubeNear(hitInfo.point);
+            //When a card isn't currently selected, choose a card. If the 'else if' statement isn't there, is perpetually selects the same card instantly.
+            else if (!cardSelected)
+                CheckCardSelection();
 
-            CheckCardSelection();
         }
 
         if (cardSelected)
@@ -116,11 +120,16 @@ public class GameManager : MonoBehaviour
     {
         currentNumHand = initialCardDrawAmount;
 
+        SetDrawnCardPositions();
+    }
+
+    private void SetDrawnCardPositions()
+    {
         int halfCards;
         float cardPosX;
         GameObject card;
 
-        halfCards = initialCardDrawAmount % 2 == 0 ? initialCardDrawAmount / 2 : (initialCardDrawAmount - 1) / 2;
+        halfCards = currentNumHand % 2 == 0 ? currentNumHand / 2 : (currentNumHand - 1) / 2;
 
         for (int i = -halfCards; i <= halfCards; i++)
         {
@@ -128,7 +137,7 @@ public class GameManager : MonoBehaviour
 
             cardPosX = i * (card.transform.localScale.x + card.GetComponent<Card>().PosOffset);
 
-            if (initialCardDrawAmount % 2 == 0)
+            if (currentNumHand % 2 == 0)
             {
                 cardPosX += (card.transform.localScale.x + card.GetComponent<Card>().PosOffset) / 2;
                 if (i == halfCards - 1)
@@ -143,7 +152,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    //Change method so there is only one raycast done, instead of the two separate ones for no reason
+    //TODO: Change method so there is only one raycast done, instead of the two separate ones for no reason
     private void CheckCardSelection()
     {
         if (!cardSelected)
@@ -194,6 +203,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //Indicates to the player when they are hovering over a tile on the grid.
     private void HoverGrid()
     {
         mouseOverRay = mainCamera.ScreenPointToRay(Input.mousePosition);
@@ -226,6 +236,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //Moves the selected card to the position of the mouse.
     private void MoveSelectedCard(GameObject card)
     {
         toObjectVector = card.transform.position - initialCameraPosition;
@@ -251,13 +262,15 @@ public class GameManager : MonoBehaviour
             cube.transform.position = finalPosition;
             cube.transform.localScale = new Vector3(grid.TileSize * 0.9f, cube.transform.localScale.y * 0.9f, grid.TileSize * 0.9f);
             cube.AddComponent<Tile>();
-            selectedCard.GetComponent<Renderer>().material.color = new Color(selectedCard.GetComponent<Renderer>().material.color.r, 
+            cardSelected = false;
+            selectedCard.layer = 0;     //Back to Default layer
+            selectedCard.GetComponent<Renderer>().material.color = new Color(selectedCard.GetComponent<Renderer>().material.color.r * 2, 
                                                                              selectedCard.GetComponent<Renderer>().material.color.g,
                                                                              selectedCard.GetComponent<Renderer>().material.color.b,
                                                                              1.0f);
-            //selectedCard.layer = 0;     //Back to Default layer
             selectedCard.GetComponent<Card>().IsSelected = false;
-            cardSelected = false;
+
+            SetDrawnCardPositions();
         }
     }
 }
