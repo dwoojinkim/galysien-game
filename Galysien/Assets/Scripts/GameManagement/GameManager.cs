@@ -123,6 +123,7 @@ public class GameManager : MonoBehaviour
         currentNumHand = initialCardDrawAmount;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         for (int i = 0; i < currentNumHand; i++)
             DrawCard();
 
@@ -136,6 +137,8 @@ public class GameManager : MonoBehaviour
 
     private void SetDrawnCardPositions()
     {
+=======
+>>>>>>> parent of b173668... Card Selection/Tile Placement Fix
 =======
 >>>>>>> parent of b173668... Card Selection/Tile Placement Fix
         int halfCards;
@@ -245,6 +248,7 @@ public class GameManager : MonoBehaviour
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     private void DeactivateHoverCube()
     {
             hoverCube.GetComponent<Renderer>().material.SetFloat("_Mode", 2);   //2 = fade mode
@@ -256,6 +260,8 @@ public class GameManager : MonoBehaviour
     }
 
     //Moves the selected card to the position of the mouse.
+=======
+>>>>>>> parent of b173668... Card Selection/Tile Placement Fix
 =======
 >>>>>>> parent of b173668... Card Selection/Tile Placement Fix
     private void MoveSelectedCard(GameObject card)
