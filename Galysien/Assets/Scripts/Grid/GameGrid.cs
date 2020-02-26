@@ -4,19 +4,27 @@ using UnityEngine;
 
 public class GameGrid : MonoBehaviour
 {
+    public GameObject HoverCube;
     [SerializeField] Vector2Int boardSize = new Vector2Int(10, 10);
     [SerializeField] Texture2D gridTexture = default;
     [SerializeField] private float tileSize = 2f;
     public float TileSize { get { return tileSize; } }
     public Vector2Int BoardSize { get { return boardSize;} }
 
+    private Camera mainCamera;
     private bool[,] gridTile;
-    Vector2 pointOffset = new Vector2(0f, 0f);  //For GetNearestPointOnGrid method
-    Vector2 boardOffset = new Vector2(0f, 0f);  //For IsOnGrid method
-    Vector2Int gridCoord = new Vector2Int(0, 0);
+    private Vector2 pointOffset = new Vector2(0f, 0f);  //For GetNearestPointOnGrid method
+    private Vector2 boardOffset = new Vector2(0f, 0f);  //For IsOnGrid method
+    private Vector2Int gridCoord = new Vector2Int(0, 0);
+    private Ray mouseOverRay;    
+    private RaycastHit mouseOverHit;
+    private GameObject mouseOverHitObject;
+    private Vector3 hoverPoint;
+
 
     void Start()
     {
+        mainCamera = Camera.main;
         transform.localScale = new Vector3 (boardSize.x * tileSize, boardSize.y * tileSize, 1);
 
         Material m = this.GetComponent<MeshRenderer>().material;
@@ -24,6 +32,20 @@ public class GameGrid : MonoBehaviour
         m.SetTextureScale("_MainTex", boardSize);
 
         gridTile = new bool[boardSize.x, boardSize.y];
+        HoverCube.transform.localScale = new Vector3 (TileSize, HoverCube.transform.localScale.y, TileSize);
+        HoverCube.layer = 2; //Ignore Raycast Layer
+        //TODO: Make the hoberCube a prefab so I can delete this nonsense.
+        //Entire chunk necessary to properly set the Rendering Mode of the material to Transparent.
+        HoverCube.GetComponent<Renderer>().sharedMaterial.SetFloat("_Mode", 2);   //2 = Fade mode where object can be completely invisible
+        HoverCube.GetComponent<Renderer>().sharedMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        HoverCube.GetComponent<Renderer>().sharedMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        HoverCube.GetComponent<Renderer>().sharedMaterial.SetInt("_ZWrite", 0);
+        HoverCube.GetComponent<Renderer>().sharedMaterial.DisableKeyword("_ALPHATEST_ON");
+        HoverCube.GetComponent<Renderer>().sharedMaterial.EnableKeyword("_ALPHABLEND_ON");
+        HoverCube.GetComponent<Renderer>().sharedMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        HoverCube.GetComponent<Renderer>().sharedMaterial.renderQueue = 3000;
+        HoverCube.GetComponent<Renderer>().sharedMaterial.color = new Color(0.4f, 0.4f, 1.0f, 0.0f);
+        //End Chunk
 
         //If Even, set offset to be half of a tile, else no offset needed
         if (boardSize.x % 2 == 0)
@@ -92,39 +114,47 @@ public class GameGrid : MonoBehaviour
     {
         gridTile[gridPosition.x, gridPosition.y] = true;
     }
-/*
-    private void OnDrawGizmos()
+
+    //Indicates to the player when they are hovering over a tile on the grid.
+    public void HoverGrid()
     {
-        Gizmos.color = Color.yellow;
-        int _boardSizeX = boardSize.x;
-        int _boardSizeY = boardSize.y;
-
-        if (boardSize.x % 2 != 0)
-            _boardSizeX -= 1;
-        if (boardSize.y % 2 != 0)
-            _boardSizeY -= 1;
-
-        Vector2 boardOffset = new Vector2(_boardSizeX * 0.5f * tileSize, _boardSizeY * 0.5f * tileSize);
-        //Debug.Log("X offset: " + boardOffset.x);
-        //ebug.Log("Y offset: " + boardOffset.y);
-
-        for (float x = 0; x < boardSize.x * tileSize; x += tileSize)
+        mouseOverRay = mainCamera.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(mouseOverRay, out mouseOverHit))
         {
-            for (float z = 0; z < boardSize.y * tileSize; z += tileSize)
+            hoverPoint = GetNearestPointOnGrid(mouseOverHit.point);
+            mouseOverHitObject = mouseOverHit.collider.gameObject;
+
+            if (IsOnGrid(hoverPoint) && (mouseOverHitObject.GetComponent<GameGrid>() != null || mouseOverHitObject.GetComponent<Tile>() != null))
             {
-                var point = GetNearestPointOnGrid(new Vector3(x - boardOffset.x, 0f, z - boardOffset.y));
-                if (boardSize.x % 2 == 0)
-                    point.x += tileSize / 2.0f;
-                if (boardSize.y % 2 == 0)
-                    point.y += tileSize / 2.0f;
+                if(mouseOverHitObject.GetComponent<GameGrid>() != null) // Checking if collider is the Grid
 
-                Gizmos.DrawSphere(point, 0.1f);
+                HoverCube.GetComponent<Renderer>().sharedMaterial.SetFloat("_Mode", 3);   //3 = transparent mode
 
-                //Debug.Log("X: " + (x - boardOffset.x + (tileSize / 2.0f)));
-                //Debug.Log("Y: " + (z - boardOffset.y + (tileSize / 2.0f)));
+                //TODO: More efficient way to color instead of constantly making a new color when hovered over grid.
+                //Use of a Ternary Operator
+                HoverCube.GetComponent<Renderer>().sharedMaterial.color = PlaceableTile(hoverPoint) ? new Color(1f, 0.4f, 0.4f, 0.5f) : new Color(0.4f, 0.4f, 1.0f, 0.5f);
+
+                HoverCube.transform.position = hoverPoint;
+
+                Debug.Log("WE IN HERE. SHOULD BE VISIBLE");
+            }
+            else
+            {
+                Debug.Log("SHOULD BE INVISIBLE");
+                DeactivateHoverCube();
             }
         }
-    }*/
+    }
+
+    public void DeactivateHoverCube()
+    {
+            HoverCube.GetComponent<Renderer>().sharedMaterial.SetFloat("_Mode", 2);   //2 = fade mode
+
+            //TODO: More efficient way to color instead of constantly making a new color when hovered over grid.
+            HoverCube.GetComponent<Renderer>().sharedMaterial.color = new Color(0.4f, 0.4f, 1.0f, 0.0f);
+
+            HoverCube.transform.position = hoverPoint;
+    }
 
     void OnValidate()
     {

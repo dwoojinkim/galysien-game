@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public enum TileType { None, Wall, Trap };
 public enum Element { None, Earth, Fire, Water, Dark, Light };
 public enum Sigil { None, Up, Down, Left, Right };             //Temporary Sigils
 
 public class GameManager : MonoBehaviour
 {
+    public GameObject Player1Object;
     public GameObject card;
 
+    private PlayerManager player1;
     private Camera mainCamera;
     private GameGrid grid;
     private int initialCardDrawAmount = 4;
@@ -37,6 +40,7 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         mainCamera = Camera.main;
+        player1 = Player1Object.GetComponent<PlayerManager>();
 
         grid = FindObjectOfType<GameGrid>();
         hoverCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -113,6 +117,8 @@ public class GameManager : MonoBehaviour
                 if (cardPool[i].activeSelf)
                     cardPool[i].transform.localPosition = new Vector3(cardPool[i].transform.localPosition.x, -3.5f, cardPool[i].transform.localPosition.z);
             }
+
+            DeactivateHoverCube();
         }
     }
 
@@ -120,7 +126,15 @@ public class GameManager : MonoBehaviour
     {
         currentNumHand = initialCardDrawAmount;
 
+        for (int i = 0; i < currentNumHand; i++)
+            DrawCard();
+
         SetDrawnCardPositions();
+    }
+
+    private void DrawCard()
+    {
+        
     }
 
     private void SetDrawnCardPositions()
@@ -169,7 +183,8 @@ public class GameManager : MonoBehaviour
                                                                                  selectedCard.GetComponent<Renderer>().material.color.g,
                                                                                  selectedCard.GetComponent<Renderer>().material.color.b,
                                                                                  0.5f);
-                selectedCard.layer = 2;         //Ignore Raycast layer
+                //Ignore Raycast layer
+                selectedCard.layer = 2;         
 
                 //Set so that if the camera moves around a bit, the card won't move with it
                 initialCameraPosition = mainCamera.transform.position;
@@ -226,14 +241,19 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                hoverCube.GetComponent<Renderer>().material.SetFloat("_Mode", 2);   //2 = fade mode
-
-                //TODO: More efficient way to color instead of constantly making a new color when hovered over grid.
-                hoverCube.GetComponent<Renderer>().material.color = new Color(0.4f, 0.4f, 1.0f, 0.0f);
-
-                hoverCube.transform.position = hoverPoint;
+                DeactivateHoverCube();
             }
         }
+    }
+
+    private void DeactivateHoverCube()
+    {
+            hoverCube.GetComponent<Renderer>().material.SetFloat("_Mode", 2);   //2 = fade mode
+
+            //TODO: More efficient way to color instead of constantly making a new color when hovered over grid.
+            hoverCube.GetComponent<Renderer>().material.color = new Color(0.4f, 0.4f, 1.0f, 0.0f);
+
+            hoverCube.transform.position = hoverPoint;
     }
 
     //Moves the selected card to the position of the mouse.
