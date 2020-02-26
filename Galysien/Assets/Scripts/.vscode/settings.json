@@ -1,6 +1,0 @@
-{
-    "files.exclude": {
-        "**/*.cs.meta": true,
-        "**/*.meta": true
-    }
-}
