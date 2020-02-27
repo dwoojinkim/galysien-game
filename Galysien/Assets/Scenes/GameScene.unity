@@ -563,8 +563,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8043b3c0557d8c43bd0333884c66347, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HoverCube: {fileID: 203017577480296815, guid: d91446fcdfb598f47b74d2946e2f81ac,
-    type: 3}
   boardSize: {x: 9, y: 9}
   gridTexture: {fileID: 2800000, guid: 3518662957cadd941827a054b4f67b05, type: 3}
   tileSize: 3

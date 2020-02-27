@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GameGrid : MonoBehaviour
 {
-    public GameObject HoverCube;
+    //public GameObject HoverCube;
     [SerializeField] Vector2Int boardSize = new Vector2Int(10, 10);
     [SerializeField] Texture2D gridTexture = default;
     [SerializeField] private float tileSize = 2f;
@@ -32,8 +32,9 @@ public class GameGrid : MonoBehaviour
         m.SetTextureScale("_MainTex", boardSize);
 
         gridTile = new bool[boardSize.x, boardSize.y];
-        HoverCube.transform.localScale = new Vector3 (TileSize, HoverCube.transform.localScale.y, TileSize);
-        HoverCube.layer = 2; //Ignore Raycast Layer
+        //HoverCube.transform.localScale = new Vector3 (TileSize, HoverCube.transform.localScale.y, TileSize);
+        //HoverCube.layer = 2; //Ignore Raycast Layer
+        /*
         //TODO: Make the hoberCube a prefab so I can delete this nonsense.
         //Entire chunk necessary to properly set the Rendering Mode of the material to Transparent.
         HoverCube.GetComponent<Renderer>().sharedMaterial.SetFloat("_Mode", 2);   //2 = Fade mode where object can be completely invisible
@@ -46,6 +47,7 @@ public class GameGrid : MonoBehaviour
         HoverCube.GetComponent<Renderer>().sharedMaterial.renderQueue = 3000;
         HoverCube.GetComponent<Renderer>().sharedMaterial.color = new Color(0.4f, 0.4f, 1.0f, 0.0f);
         //End Chunk
+        */
 
         //If Even, set offset to be half of a tile, else no offset needed
         if (boardSize.x % 2 == 0)
@@ -128,13 +130,13 @@ public class GameGrid : MonoBehaviour
             {
                 if(mouseOverHitObject.GetComponent<GameGrid>() != null) // Checking if collider is the Grid
 
-                HoverCube.GetComponent<Renderer>().sharedMaterial.SetFloat("_Mode", 3);   //3 = transparent mode
+                //HoverCube.GetComponent<Renderer>().sharedMaterial.SetFloat("_Mode", 3);   //3 = transparent mode
 
                 //TODO: More efficient way to color instead of constantly making a new color when hovered over grid.
                 //Use of a Ternary Operator
-                HoverCube.GetComponent<Renderer>().sharedMaterial.color = PlaceableTile(hoverPoint) ? new Color(1f, 0.4f, 0.4f, 0.5f) : new Color(0.4f, 0.4f, 1.0f, 0.5f);
+                //HoverCube.GetComponent<Renderer>().sharedMaterial.color = PlaceableTile(hoverPoint) ? new Color(1f, 0.4f, 0.4f, 0.5f) : new Color(0.4f, 0.4f, 1.0f, 0.5f);
 
-                HoverCube.transform.position = hoverPoint;
+                //HoverCube.transform.position = hoverPoint;
 
                 Debug.Log("WE IN HERE. SHOULD BE VISIBLE");
             }
@@ -148,12 +150,12 @@ public class GameGrid : MonoBehaviour
 
     public void DeactivateHoverCube()
     {
-            HoverCube.GetComponent<Renderer>().sharedMaterial.SetFloat("_Mode", 2);   //2 = fade mode
+            //HoverCube.GetComponent<Renderer>().sharedMaterial.SetFloat("_Mode", 2);   //2 = fade mode
 
             //TODO: More efficient way to color instead of constantly making a new color when hovered over grid.
-            HoverCube.GetComponent<Renderer>().sharedMaterial.color = new Color(0.4f, 0.4f, 1.0f, 0.0f);
+            //HoverCube.GetComponent<Renderer>().sharedMaterial.color = new Color(0.4f, 0.4f, 1.0f, 0.0f);
 
-            HoverCube.transform.position = hoverPoint;
+            //HoverCube.transform.position = hoverPoint;
     }
 
     void OnValidate()
